@@ -1,3 +1,7 @@
+# KI Campus Annotation
+
+This ai chat plugin has been provided to the KI Campus by the Scieneers as a zip file. Hosting it internally to be able to install it, using our ansible script.
+
 # moodle-block_openai_chat_scieneers
 
 <img align="right" src="https://user-images.githubusercontent.com/33644013/162025197-52c34e24-66a8-46e7-ab95-b0f65268031b.png" />
