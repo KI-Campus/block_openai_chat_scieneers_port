@@ -67,6 +67,6 @@ $settings->add(new admin_setting_configtext(
     'block_openai_chat_scieneers/apiurl',
     get_string('apiurl', 'block_openai_chat_scieneers'),
     get_string('apiurldesc', 'block_openai_chat_scieneers'),
-    'https://scieneers.techtiefen.de/chat',
+    'https://kic-restapi-dev.azurewebsites.net/api/chat',
     PARAM_TEXT
 ));

@@ -29,7 +29,7 @@ class block_openai_chat_scieneers_edit_form extends block_edit_form {
         $mform->addElement('header', 'config_header', get_string('blocksettings', 'block'));
 
         $mform->addElement('text', 'config_title', get_string('blocktitle', 'block_openai_chat_scieneers'));
-        $mform->setDefault('config_title', 'OpenAI Chat');
+        $mform->setDefault('config_title', 'KI Campus Chat');
         $mform->setType('config_title', PARAM_TEXT);
 
         $mform->addElement('advcheckbox', 'config_showlabels', get_string('showlabels', 'block_openai_chat_scieneers'), '&nbsp;');

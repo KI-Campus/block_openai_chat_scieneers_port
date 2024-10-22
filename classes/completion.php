@@ -116,6 +116,32 @@ class completion {
         return $history_string;
     }
 
+	private function buildCurlBody() {
+		$body = new \stdClass();
+		
+		$body->messages = [];
+		$body->model = "Qwen2";
+		
+		
+		foreach($this->history as $h) {
+			$newHistoryItem = new \stdClass();
+			
+			$newHistoryItem->content = $h["message"];
+			$newHistoryItem->role = strtolower($h["user"]);
+			
+			$body->messages[] = $newHistoryItem;
+		}
+		
+		$newestHistoryItem = new \stdClass();
+		
+		$newestHistoryItem->content = $this->message;
+		$newestHistoryItem->role = "user";
+		
+		$body->messages[] = $newestHistoryItem;
+		
+		return $body;
+	}
+
     /**
      * Make the actual API call to OpenAI
      * @return JSON: The response from OpenAI
@@ -123,6 +149,9 @@ class completion {
     private function make_api_call($history_string) {
         global $COURSE, $USER, $SESSION;
 
+		$curlbody = $this->buildCurlBody();
+
+		/*
         $curlbody = [
             "prompt" => $this->message,
             "user_id" => $USER->id, // optional field, should make it anonymous later on
@@ -133,17 +162,18 @@ class completion {
         if(!empty($this->infosource)) {
             $curlbody["lecture_id"] = $this->infosource;
         } 
-        
+        */
+		
         $payload = json_encode($curlbody);
         $header = [
             'Content-Type: application/json',
             'Accept: application/json', 
-            'accesstoken: vinces-waKqoh-6gemqi'
+            'Api-Key: moodle-Wvz47pr4sBTS-gr7BXpL(VgSuSpMmPCh'
         ];
 
         $curl = new \curl();
         $curl->setHeader($header);
-        $curl->setopt(array('CURLOPT_SSL_VERIFYPEER' => false, 'CURLOPT_SSL_VERIFYHOST' => 0));
+        //$curl->setopt(array('CURLOPT_SSL_VERIFYPEER' => false, 'CURLOPT_SSL_VERIFYHOST' => 0));
         $result = $curl->post(get_config('block_openai_chat_scieneers', 'apiurl'), $payload);
         $curlinfo = $curl->get_info();
 

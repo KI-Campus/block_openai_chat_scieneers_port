@@ -22,11 +22,11 @@
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-$string['pluginname'] = 'scieneers OpenAI Chat Block';
-$string['openai_chat_scieneers'] = 'OpenAI Chat';
-$string['openai_chat_scieneers:addinstance'] = 'Add a new OpenAI Chat block';
-$string['openai_chat_scieneers:myaddinstance'] = 'Add a new OpenAI Chat block to the My Moodle page';
-$string['privacy:metadata'] = 'The OpenAI Chat block stores no personal user data; nor does it, by default, send personal data to OpenAI. However, chat messages submitted by users are sent in their entirety to OpenAI, and are then subject to OpenAI\'s privacy policy (https://openai.com/api/policies/privacy/), which may store messages in order to improve the API.';
+$string['pluginname'] = 'Scieneers & KI Campus Chat Block';
+$string['openai_chat_scieneers'] = 'KI Campus Chat';
+$string['openai_chat_scieneers:addinstance'] = 'Add a new KI Campus Chat block';
+$string['openai_chat_scieneers:myaddinstance'] = 'Add a new KI Campus Chat block to the My Moodle page';
+$string['privacy:metadata'] = 'The KI Campus Chat block stores no personal user data; nor does it, by default, send personal data to the Scieneers and GWDG. However, chat messages submitted by users are sent in their entirety to Scieneers and GWDG, which may store messages in order to improve the API.';
 
 $string['blocktitle'] = 'Block title';
 
@@ -52,7 +52,7 @@ $string['defaultprompt'] = "Below is a conversation between a user and a support
 $string['defaultassistantname'] = 'Assistant';
 $string['defaultusername'] = 'User';
 $string['askaquestion'] = 'Ask a question...';
-$string['apikeymissing'] = 'Please add your OpenAI API key to the global block settings.';
+$string['apikeymissing'] = 'Please add your KI Campus API key to the global block settings.';
 $string['erroroccurred'] = 'An error occurred! Please try again later.';
 $string['response_parsing_error'] = 'Error parsing response';
 $string['response_parsing_errordesc'] = 'Error parsing response as JSON: {$a}';

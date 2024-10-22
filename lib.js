@@ -77,7 +77,7 @@ const createCompletion = (message, sourceOfTruth, infoSource, id) => {
     })
     .then(data => {
         try {
-            addToChatLog('bot', data.answer, id)
+            addToChatLog('bot', data.message, id)
         } catch (error) {
             addToChatLog('bot', data.error.message, id)
         }
