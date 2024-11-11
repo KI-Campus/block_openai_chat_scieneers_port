@@ -41,6 +41,7 @@ $message = clean_param($body['message'], PARAM_NOTAGS);
 $history = clean_param_array($body['history'], PARAM_NOTAGS, true);
 $localsourceoftruth = clean_param($body['sourceOfTruth'], PARAM_NOTAGS);
 $infosource = clean_param($body['infoSource'], PARAM_NOTAGS);
+$kiCourseID = intval(clean_param($body['courseID'], PARAM_NOTAGS));
 
 if (!$message) {
     http_response_code(400);
@@ -48,7 +49,7 @@ if (!$message) {
     die();
 }
 
-$completion = new \block_openai_chat_scieneers\completion($message, $history, $localsourceoftruth, $infosource);
+$completion = new \block_openai_chat_scieneers\completion($message, $history, $localsourceoftruth, $infosource, $kiCourseID);
 $response = $completion->create_completion();
 
 echo $response;

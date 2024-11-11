@@ -74,6 +74,7 @@ class block_openai_chat_scieneers extends block_base {
             <script>
                 var assistantName = "' . $assistantname . '";
                 var userName = "' . $username . '";
+				var kiCampusChatBotCourseID = "' . $COURSE->id . '";
             </script>
 
             <style>
@@ -89,7 +90,7 @@ class block_openai_chat_scieneers extends block_base {
             <div id="openai_chat_scieneers_log-' . $this->instance->id . '"></div>
         ';
 
-        $this->content->footer = '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') .'" type="text" name="message" />';
+        $this->content->footer = '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" />';
 
         return $this->content;
     }

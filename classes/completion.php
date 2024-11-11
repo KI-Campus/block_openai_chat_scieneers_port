@@ -39,6 +39,8 @@ class completion {
 
     protected $message;
     protected $history;
+	
+	protected $kiCourseID;
 
     /**
      * Initialize all the class properties that we'll need regardless of model
@@ -46,7 +48,7 @@ class completion {
      * @param array history: An array of objects containing the history of the conversation
      * @param string localsourceoftruth: The instance-level source of truth we got from the API call
      */
-    public function __construct($message, $history, $localsourceoftruth, $infosource) {
+    public function __construct($message, $history, $localsourceoftruth, $infosource, $courseID) {
         $this->prompt = $this->get_setting('prompt', get_string('defaultprompt', 'block_openai_chat_scieneers'));
         $this->assistantname = $this->get_setting('assistantname', get_string('defaultassistantname', 'block_openai_chat_scieneers'));
         $this->username = $this->get_setting('username', get_string('defaultusername', 'block_openai_chat_scieneers'));
@@ -56,6 +58,8 @@ class completion {
 
         $this->build_source_of_truth($localsourceoftruth);
         $this->infosource = $infosource;
+		
+		$this->kiCourseID = $courseID;
     }
 
     /**
@@ -117,10 +121,16 @@ class completion {
     }
 
 	private function buildCurlBody() {
+		//https://kic-restapi-dev.azurewebsites.net/docs#/default/chat_api_chat_post
 		$body = new \stdClass();
 		
 		$body->messages = [];
 		$body->model = "Qwen2";
+		
+		// course id #1 is used for no course. all valid and existing courses should have an id > 1.
+		if($this->kiCourseID > 1) {
+			$body->course_id = $this->kiCourseID;
+		}
 		
 		
 		foreach($this->history as $h) {

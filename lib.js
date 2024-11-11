@@ -5,7 +5,7 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
     document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
         if (e.which === 13 && e.target.value !== "") {
             addToChatLog('user', e.target.value, id)
-            createCompletion(e.target.value, sourceOfTruth, infoSource, id)
+            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID)
             e.target.value = ''
         }
     })
@@ -43,7 +43,7 @@ const addToChatLog = (type, message, id) => {
     messageContainer.scrollTop = messageContainer.scrollHeight
 }
 
-const createCompletion = (message, sourceOfTruth, infoSource, id) => {
+const createCompletion = (message, sourceOfTruth, infoSource, id, courseID) => {
     /**
      * Makes an API request to get a completion from GPT-3, and adds it to the chat log
      * @param {string} message The text to get a completion for
@@ -61,7 +61,8 @@ const createCompletion = (message, sourceOfTruth, infoSource, id) => {
             message: message,
             history: history,
             sourceOfTruth: sourceOfTruth,
-            infoSource: infoSource
+            infoSource: infoSource,
+			courseID: courseID
         })
     })
     .then(response => {
