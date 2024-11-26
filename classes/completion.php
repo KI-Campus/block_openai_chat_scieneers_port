@@ -125,7 +125,7 @@ class completion {
 		$body = new \stdClass();
 		
 		$body->messages = [];
-		$body->model = "Qwen2";
+		$body->model = "Llama3"; //"Qwen2";
 		
 		// course id #1 is used for no course. all valid and existing courses should have an id > 1.
 		if($this->kiCourseID > 1) {
