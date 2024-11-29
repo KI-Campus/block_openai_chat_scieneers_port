@@ -201,8 +201,8 @@ class completion {
             return json_encode($err_array);
         }
         
-        if ($obj) {
-            $SESSION->block_openai_chat_scieneers_chatid = $obj->chat_id;
+        if ($obj && property_exists($obj, "chat_id")) {
+			$SESSION->block_openai_chat_scieneers_chatid = $obj->chat_id;
         } else {
             $context = \context_course::instance($COURSE->id);
             $event = response_parsing_error::create([
