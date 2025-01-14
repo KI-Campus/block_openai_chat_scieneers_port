@@ -48,7 +48,7 @@ class block_openai_chat_scieneers extends block_base {
         }
 
         $sourceoftruth = !empty($this->config) && $this->config->sourceoftruth ? $this->config->sourceoftruth : '';
-        $infosource = $this->config->infosource;
+        $infosource    = !empty($this->config) && $this->config->infosource    ? $this->config->infosource    : '';
 
         $this->page->requires->js('/blocks/openai_chat_scieneers/lib.js');
         $this->page->requires->js_init_call('init', [$sourceoftruth, $infosource, $this->instance->id]);
