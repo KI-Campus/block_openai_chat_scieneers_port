@@ -178,7 +178,7 @@ class completion {
         $header = [
             'Content-Type: application/json',
             'Accept: application/json', 
-            'Api-Key: moodle-Wvz47pr4sBTS-gr7BXpL(VgSuSpMmPCh'
+            'Api-Key: moodle-NuRwIByP*9W1Vj_Af)aDrFk+N1otSbMQ'
         ];
 
         $curl = new \curl();
