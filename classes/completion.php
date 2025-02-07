@@ -184,7 +184,7 @@ class completion {
         $curl = new \curl();
         $curl->setHeader($header);
         //$curl->setopt(array('CURLOPT_SSL_VERIFYPEER' => false, 'CURLOPT_SSL_VERIFYHOST' => 0));
-        $result = $curl->post(get_config('block_openai_chat_scieneers', 'apiurl'), $payload);
+        $result = $curl->post(trim(get_config('block_openai_chat_scieneers', 'apiurl')), $payload);
         $curlinfo = $curl->get_info();
 
         $obj = json_decode($result);
