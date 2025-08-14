@@ -87,7 +87,27 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID) => {
         document.querySelector('#openai_input-'+id).classList.add('error')
         document.querySelector('#openai_input-'+id).placeholder = errorString
     })
+	
+    try {
+        let messageCount = 1;
 
+        if(Array.isArray(history)) {
+            messageCount = history.length + 1;
+        }
+
+        if(typeof _paq !== 'undefined') {
+            _paq.push(['trackEvent', 'ChatBot', 'Message Sent', 'ChatBot Message Sent', messageCount]);
+        }
+
+        let greeting = document.getElementById("chatbotgreeting");
+
+        if(greeting !== undefined) {
+            greeting.style.display = "none";
+        }
+
+    } catch(error) {
+        console.log("counter error");
+    }
 }
 
 const buildTranscript = () => {
