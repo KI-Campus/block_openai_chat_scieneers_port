@@ -61,3 +61,5 @@ $string['sourceoftruthreinforcement'] = ' The assistant has been trained to answ
 
 $string['error_unknown_info_source'] = "An unknown info source was specified in the block settings, please ask a site administrator to configure the block correctly.";
 $string['error_unknown_info_source_admin'] = 'Unknown info source. Set info source to one of the following classes: {$a}. Leave info source empty for direct access to chat gpt.';
+
+$string['chatbot_greeting'] = '👋&nbsp;&nbsp;I am your AI Assistant.<br /><br />You can ask me about courses, content, or everything KI Campus.';
