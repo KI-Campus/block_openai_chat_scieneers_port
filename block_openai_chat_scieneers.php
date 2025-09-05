@@ -68,9 +68,10 @@ class block_openai_chat_scieneers extends block_base {
 
         $assistantname = get_config('block_openai_chat_scieneers', 'assistantname') ? get_config('block_openai_chat_scieneers', 'assistantname') : get_string('defaultassistantname', 'block_openai_chat_scieneers');
         $username = get_config('block_openai_chat_scieneers', 'username') ? get_config('block_openai_chat_scieneers', 'username') : get_string('defaultusername', 'block_openai_chat_scieneers');
+		$greeting = get_string('chatbot_greeting', 'block_openai_chat_scieneers');
 
         $this->content = new stdClass;
-        $this->content->text = '<div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">👋&nbsp;&nbsp;Ich bin dein KI-Assistent.<br /><br />Frag mich zu Kursen, Inhalten oder allem rund um den KI-Campus.</div>';
+        $this->content->text = '<div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">' . $greeting . '</div>';
         
         $this->content->text .= '
             <script>
