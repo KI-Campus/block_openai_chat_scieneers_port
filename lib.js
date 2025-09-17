@@ -2,13 +2,21 @@ var questionString = 'Ask a question...'
 var errorString = 'An error occurred! Please try again later.'
 
 const init = (Y, sourceOfTruth, infoSource, id) => {
-    document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
+    document.querySelector('#openai_input-' + id).addEventListener('keyup', e => {
         if (e.which === 13 && e.target.value !== "") {
-            addToChatLog('user', e.target.value, id)
-            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID)
-            e.target.value = ''
+            addToChatLog('user', e.target.value, id);
+            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID);
+            e.target.value = '';
         }
-    })
+    });
+	
+	document.querySelector('#openai_input_submit-' + id).addEventListener('click', e => {
+		let inputElem = document.querySelector('#openai_input-' + id);
+		
+		addToChatLog('user', inputElem.value, id);
+		createCompletion(inputElem.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID);
+		inputElem.value = '';
+	});
 
     require(['core/str'], function(str) {
         var strings = [

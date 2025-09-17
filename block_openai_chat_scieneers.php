@@ -93,7 +93,7 @@ class block_openai_chat_scieneers extends block_base {
             <div id="openai_chat_scieneers_log-' . $this->instance->id . '"></div>
         ';
 
-        $this->content->footer = '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" />';
+        $this->content->footer = '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" /><br /><input id="openai_input_submit-' . $this->instance->id . '" style="margin-top: 5px" type="submit" value="' . get_string('sendmessage', 'block_openai_chat_scieneers') . '" />';
 
         return $this->content;
     }

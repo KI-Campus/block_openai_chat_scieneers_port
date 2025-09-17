@@ -63,3 +63,4 @@ $string['error_unknown_info_source'] = "In den Blockeinstellungen wurde eine unb
 $string['error_unknown_info_source_admin'] = 'Unbekannte Informationsquelle. Setzen Sie die Informationsquelle auf eine der folgenden Klassen: {$a}. Lassen Sie die Quelle leer, um direkten Zugriff auf ChatGPT zu erhalten.';
 
 $string['chatbot_greeting'] = '👋&nbsp;&nbsp;Ich bin dein KI-Assistent.<br /><br />Frag mich zu Kursen, Inhalten oder allem rund um den KI-Campus.';
+$string['sendmessage'] = 'Nachricht senden';
