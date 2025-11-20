@@ -74,3 +74,134 @@
     from {opacity: 0;}
     to {opacity: 1;}
 }
+
+
+
+
+    /*----------------------------------------------------------------------------------
+
+    CHATBOT
+
+    -----------------------------------------------------------------------------------*/
+
+.block_openai_chat_scieneers h3 {
+    color: #3a2a78;
+    font-size: 24px;
+    font-weight: 400;
+}
+
+.block_openai_chat_scieneers .chatnavbar {
+    padding: 0;
+    margin-bottom: 1rem;
+}
+
+.block_openai_chat_scieneers .chatnavbar li,
+.block_openai_chat_scieneers .chatnavbar li a {
+    padding: 5px;
+    margin-bottom: 1rem;
+    color: #3a2a78;
+}
+
+.block_openai_chat_scieneers .active-elem {
+    padding-bottom: 5px;
+    font-weight: bold;
+    box-shadow:  0 -0.2rem #fff, 0 0.2rem #71B214;
+}
+
+.block_openai_chat_scieneers .inactive-elem a:hover {
+    font-weight: bold;
+    text-decoration: none;
+}
+.block_openai_chat_scieneers .inactive-elem a:focus {
+    background: transparent;
+    box-shadow:  0 -0.2rem #fff, 0 0.2rem #71B214;
+}
+
+.block_openai_chat_scieneers .greeting-wrapper {
+    padding: 5px 50px 5px 5px;
+    border:1px solid #CFC9E8;
+    border-radius:20px;
+    margin-top: 1rem !important;
+}
+
+.block_openai_chat_scieneers #chatbotgreeting {
+    color:#000000 !important;
+    background:#f5f5f5 !important;
+}
+
+.block_openai_chat_scieneers:has([id^="openai_chat_scieneers_log"] .openai_message) .greeting-wrapper {
+    display: none;
+}
+
+.block_openai_chat_scieneers [id^="openai_chat_scieneers_log"] {
+    border:1px solid #CFC9E8;
+    border-radius:20px;
+    scrollbar-width:thin;
+    margin-top: 1rem;
+    padding: 5px;
+    overflow-y:auto;
+}
+
+.block_openai_chat_scieneers [id^="openai_chat_scieneers_log"]:not(:has(.openai_message)) {
+    display: none;
+}
+
+.block_openai_chat_scieneers .openai_message.user {
+    color:#FFF;
+    background:#3A2A78;
+    border-radius:13px 13px 0 13px;
+    width:90%;
+    text-align:left;
+}
+.block_openai_chat_scieneers .openai_message.bot {
+    color:#000000;
+    background:#f5f5f5;
+    border-radius:13px 13px 13px 0;
+}
+
+.block_openai_chat_scieneers .openai_message:before {
+    display: none;
+}
+
+.block_openai_chat_scieneers .infotext {
+    font-size: small;
+    margin: 5px 0;
+}
+
+.block_openai_chat_scieneers [id^="openai_input"] {
+    border-radius:20px;
+    border:1px solid #CFC9E8;
+    padding:15px 10px;
+}
+
+.block_openai_chat_scieneers [id^="openai_send-"]{
+    border-radius: 3rem;
+    color: #fff !important;
+    background-color: #3A2A78 !important;
+    padding: 15px 23px;
+    border: none;
+    background-image: linear-gradient(90deg, #5D4CB3, #5D4CB3);
+    background-repeat: no-repeat;
+    background-position: left;
+    background-size: 0% 100%;
+    transition: background-size .35s ease-out;
+}
+
+/* transition left -> right */
+.block_openai_chat_scieneers [id^="openai_send-"]:hover,
+.block_openai_chat_scieneers [id^="openai_send-"]:focus-visible{
+    background-size: 100% 100%;
+}
+
+.block_openai_chat_scieneers [id^="openai_send-"] .fa-arrow-right{
+    display: inline-block;
+    margin-left: 0.3em;
+    transform-origin: left center;
+    transform: scaleX(1);
+    transition: transform .35s ease-out;
+}
+
+.block_openai_chat_scieneers [id^="openai_send-"]:hover .fa-arrow-right,
+.block_openai_chat_scieneers [id^="openai_send-"]:focus-visible .fa-arrow-right{
+    transform: scaleX(1.6);
+}

@@ -68,11 +68,20 @@ class block_openai_chat_scieneers extends block_base {
 
         $assistantname = get_config('block_openai_chat_scieneers', 'assistantname') ? get_config('block_openai_chat_scieneers', 'assistantname') : get_string('defaultassistantname', 'block_openai_chat_scieneers');
         $username = get_config('block_openai_chat_scieneers', 'username') ? get_config('block_openai_chat_scieneers', 'username') : get_string('defaultusername', 'block_openai_chat_scieneers');
-		$greeting = get_string('chatbot_greeting', 'block_openai_chat_scieneers');
 
         $this->content = new stdClass;
-        $this->content->text = '<div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">' . $greeting . '</div>';
-        
+        $greeting = get_string('chatbot_greeting', 'block_openai_chat_scieneers');
+
+        $this->content->text = '<ul class="chatnavbar" style="list-style: none; display: inline">
+            <li class="active-elem" style="display: inline">Chatbot</li>
+            <li class="inactive-elem" style="display: inline">
+            <a href="https://ki-campus.org/kontakt" target="_blank">Kontaktformular</a></li>
+        </ul>';
+
+        $this->content->text .= '<div class="greeting-wrapper">
+            <div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">' . $greeting . '</div>
+        </div>';
+
         $this->content->text .= '
             <script>
                 var assistantName = "' . $assistantname . '";
@@ -93,8 +102,18 @@ class block_openai_chat_scieneers extends block_base {
             <div id="openai_chat_scieneers_log-' . $this->instance->id . '"></div>
         ';
 
-        $this->content->footer = '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" /><br /><input id="openai_input_submit-' . $this->instance->id . '" style="margin-top: 5px" type="submit" value="' . get_string('sendmessage', 'block_openai_chat_scieneers') . '" />';
+        $this->content->footer = '<div class="infotext"> ' . get_string('askaquestion', 'block_openai_chat_scieneers') . ' </div>';
+
+        $this->content->footer .= '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" />';
+
+        $this->content->footer .= '
+            <button id="openai_send-' . $this->instance->id . '" class="btn btn-primary" type="button" style="margin: 10px 0;">
+                ' . get_string('sendmessage', 'block_openai_chat_scieneers') . ' <i class="fa fa-arrow-right" aria-hidden="true" style="font-size: 0.8rem"></i>
+            </button>
+        ';
 
         return $this->content;
     }
+
+
 }
