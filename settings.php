@@ -70,3 +70,12 @@ $settings->add(new admin_setting_configtext(
     'https://kic-restapi-dev.azurewebsites.net/api/chat',
     PARAM_TEXT
 ));
+
+
+$settings->add(new admin_setting_configpasswordunmask(
+    'block_openai_chat_scieneers/apikey',              // setting name
+    get_string('apikey', 'block_openai_chat_scieneers'), // label
+    get_string('apikeydesc', 'block_openai_chat_scieneers'), // description
+    '',                                                // default value (empty)
+    PARAM_TEXT
+));
