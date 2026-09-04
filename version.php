@@ -28,4 +28,4 @@ $plugin->component = 'block_openai_chat_scieneers';
 $plugin->version = 2023081101;
 $plugin->requires = 2020061513;
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '1.6.0';
+$plugin->release = '1.6.1';
