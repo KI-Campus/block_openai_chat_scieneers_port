@@ -2,6 +2,43 @@ var questionString = 'Ask a question...'
 var errorString = 'An error occurred! Please try again later.'
 
 const init = (Y, sourceOfTruth, infoSource, id) => {
+    // Floating chat bubble (bottom right) that opens the block drawer.
+    const title = document.querySelector('#inst'+id+' .card-title, #inst'+id+' h5')?.textContent?.trim() || 'Chat';
+    if (!document.querySelector('#scieneers-chat-bubble-'+id)) {
+        document.body.insertAdjacentHTML('beforeend', `
+            <div class="scieneers-chat-bubble" id="scieneers-chat-bubble-${id}" title="${title}">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" width="28" height="28">
+                    <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+                    <path d="M7 9h2v2H7zm4 0h2v2h-2zm4 0h2v2h-2z"/>
+                </svg>
+            </div>
+        `)
+        document.querySelector('#scieneers-chat-bubble-'+id).addEventListener('click', () => {
+            const block = document.querySelector('#inst'+id)
+
+            const toggle = document.querySelector('[data-toggler="drawers"][data-action="toggle"][data-target="theme_boost-drawers-blocks"]')
+                || document.querySelector('[data-toggler="drawers"][data-action="toggle"][data-target$="drawers-blocks"]')
+            if (toggle) {
+                toggle.click()
+            }
+            if (block) {
+                block.scrollIntoView({behavior: 'smooth', block: 'start'})
+            }
+        })
+
+        // Bubble nur anzeigen, wenn der Block-Drawer geschlossen ist.
+        const bubble = document.querySelector('#scieneers-chat-bubble-'+id)
+        const drawer = document.querySelector('#theme_boost-drawers-blocks')
+            || document.querySelector('[id$="drawers-blocks"]')
+        const syncBubble = () => {
+            bubble.style.display = (drawer && drawer.classList.contains('show')) ? 'none' : ''
+        }
+        if (drawer) {
+            new MutationObserver(syncBubble).observe(drawer, {attributes: true, attributeFilter: ['class']})
+        }
+        syncBubble()
+    }
+
     document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
         if (e.which === 13 && e.target.value !== "") {
             addToChatLog('user', e.target.value, id)

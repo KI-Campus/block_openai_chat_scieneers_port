@@ -75,6 +75,28 @@
     to {opacity: 1;}
 }
 
+.scieneers-chat-bubble {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #3A2A78;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(58, 42, 120, 0.45);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, opacity 0.25s ease;
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1050;
+}
+
+.scieneers-chat-bubble:hover {
+    transform: scale(1.08);
+    box-shadow: 0 6px 20px rgba(58, 42, 120, 0.55);
+}
+
 
 
 
