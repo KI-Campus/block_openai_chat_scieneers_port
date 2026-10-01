@@ -26,7 +26,6 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
             }
         })
 
-        // Bubble nur anzeigen, wenn der Block-Drawer geschlossen ist.
         const bubble = document.querySelector('#scieneers-chat-bubble-'+id)
         const drawer = document.querySelector('#theme_boost-drawers-blocks')
             || document.querySelector('[id$="drawers-blocks"]')

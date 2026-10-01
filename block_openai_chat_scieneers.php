@@ -107,6 +107,24 @@ class block_openai_chat_scieneers extends block_base {
         $this->content->footer .= '<input id="openai_input-' . $this->instance->id . '" placeholder="' . get_string('askaquestion', 'block_openai_chat_scieneers') . '" type="text" name="message" />';
 
         $this->content->footer .= '
+            <div class="scieneers-socratic-toggle">
+                <span class="scieneers-socratic-info" id="scieneers-socratic-info-' . $this->instance->id . '" aria-label="Info" role="button" tabindex="0">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+                    </svg>
+                </span>
+                <div class="scieneers-socratic-info-popup" id="scieneers-socratic-info-popup-' . $this->instance->id . '">' . get_string('socraticmodeinfo', 'block_openai_chat_scieneers') . '</div>
+                <span class="scieneers-socratic-toggle-label">' . get_string('socraticmode', 'block_openai_chat_scieneers') . '</span>
+                <div class="scieneers-socratic-toggle-button">
+                    <div class="custom-control custom-switch">
+                        <input type="checkbox" class="custom-control-input" id="scieneers-socratic-toggle-' . $this->instance->id . '">
+                        <label class="custom-control-label" for="scieneers-socratic-toggle-' . $this->instance->id . '">&nbsp;</label>
+                    </div>
+                </div>
+            </div>
+        ';
+
+        $this->content->footer .= '
             <button id="openai_send-' . $this->instance->id . '" class="btn btn-primary" type="button" style="margin: 10px 0;">
                 ' . get_string('sendmessage', 'block_openai_chat_scieneers') . ' <i class="fa fa-arrow-right" aria-hidden="true" style="font-size: 0.8rem"></i>
             </button>

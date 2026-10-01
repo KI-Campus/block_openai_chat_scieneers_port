@@ -64,3 +64,5 @@ $string['error_unknown_info_source_admin'] = 'Unbekannte Informationsquelle. Set
 
 $string['chatbot_greeting'] = '👋&nbsp;&nbsp;Ich bin dein KI-Assistent.<br /><br />Frag mich zu Kursen, Inhalten oder allem rund um den KI-Campus.';
 $string['sendmessage'] = 'Nachricht senden';
+$string['socraticmode'] = 'Sokratischer Modus';
+$string['socraticmodeinfo'] = 'Im sokratischen Modus führt dich der Assistent mit Fragen zur Antwort, anstatt sie direkt zu geben.';

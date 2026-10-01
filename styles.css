@@ -227,3 +227,51 @@
 .block_openai_chat_scieneers [id^="openai_send-"]:focus-visible .fa-arrow-right{
     transform: scaleX(1.6);
 }
+
+/* Socratic mode toggle */
+.block_openai_chat_scieneers .scieneers-socratic-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    position: relative;
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-info {
+    cursor: pointer;
+    color: #3A2A78;
+    display: inline-flex;
+    align-items: center;
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-info-popup {
+    display: none;
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    margin-bottom: 0.5rem;
+    background: #3A2A78;
+    color: #fff;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    max-width: 250px;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-info:hover + .scieneers-socratic-info-popup,
+.block_openai_chat_scieneers .scieneers-socratic-info:focus + .scieneers-socratic-info-popup,
+.block_openai_chat_scieneers .scieneers-socratic-info-popup:hover {
+    display: block;
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-toggle-label {
+    font-size: 0.9rem;
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-toggle-button {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
