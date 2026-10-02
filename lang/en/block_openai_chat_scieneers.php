@@ -68,6 +68,6 @@ $string['apikeydesc'] = 'Enter the API key used to authenticate with the Scienee
 $string['apikeymissing'] = 'API key is not configured. Please contact the site administrator.';
 
 $string['chatbot_greeting'] = '👋&nbsp;&nbsp;I am your AI Assistant.<br /><br />You can ask me about courses, content, or everything KI Campus.';
-$string['sendmessage'] = 'Send Message';
+$string['sendmessage'] = 'Send';
 $string['socraticmode'] = 'Socratic mode';
 $string['socraticmodeinfo'] = 'In Socratic mode, the assistant guides you with questions instead of giving direct answers.';

@@ -207,6 +207,7 @@
     background-position: left;
     background-size: 0% 100%;
     transition: background-size .35s ease-out;
+    margin: 10px 5px 10px 0;
 }
 
 /* transition left -> right */
@@ -232,7 +233,7 @@
 .block_openai_chat_scieneers .scieneers-socratic-toggle {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0;
     margin-top: 0.5rem;
     position: relative;
 }
@@ -260,6 +261,11 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
+.send-row {
+    display: flex;
+    align-items: center;
+}
+
 .block_openai_chat_scieneers .scieneers-socratic-info:hover + .scieneers-socratic-info-popup,
 .block_openai_chat_scieneers .scieneers-socratic-info:focus + .scieneers-socratic-info-popup,
 .block_openai_chat_scieneers .scieneers-socratic-info-popup:hover {
@@ -268,6 +274,7 @@
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-label {
     font-size: 0.9rem;
+    margin-left: -0.5rem;
 }
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-button {
