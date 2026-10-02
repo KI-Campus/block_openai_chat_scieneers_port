@@ -274,13 +274,7 @@
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-label {
     font-size: 0.9rem;
-    margin-left: -0.5rem;
-}
-
-.block_openai_chat_scieneers .scieneers-socratic-toggle-button {
-    margin-left: auto;
-    display: flex;
-    align-items: center;
+    margin: 0 0.5rem 0 -0.5rem;
 }
 
 /* resizing */
