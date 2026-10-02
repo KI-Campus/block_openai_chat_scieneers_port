@@ -32,9 +32,11 @@ define([], function() {
             document.addEventListener('pointerup', stop);
         });
 
+        //reset
         const observer = new MutationObserver(() => {
             if (drawer.classList.contains('hidden') || !document.body.classList.contains('drawer-open-right')) {
                 page.style.marginRight = '';
+                drawer.style.width = '';
             }
         });
         observer.observe(drawer, {attributes: true, attributeFilter: ['class']});
