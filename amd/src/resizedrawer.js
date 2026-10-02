@@ -1,8 +1,9 @@
 define([], function() {
     const init = () => {
         const drawer = document.querySelector('.drawer-right');
+        const page = document.querySelector('#page.drawers') || document.querySelector('#page');
 
-        if (!drawer) {
+        if (!drawer || !page) {
             return;
         }
 
@@ -17,8 +18,9 @@ define([], function() {
             const startWidth = drawer.offsetWidth;
 
             const resize = (event) => {
-                const width = startWidth + startX - event.clientX;
-                drawer.style.width = `${Math.max(280, Math.min(700, width))}px`;
+                const width = Math.max(280, Math.min(700, startWidth + startX - event.clientX));
+                drawer.style.width = `${width}px`;
+                page.style.marginRight = `${width}px`;
             };
 
             const stop = () => {
@@ -29,6 +31,14 @@ define([], function() {
             document.addEventListener('pointermove', resize);
             document.addEventListener('pointerup', stop);
         });
+
+        const observer = new MutationObserver(() => {
+            if (drawer.classList.contains('hidden') || !document.body.classList.contains('drawer-open-right')) {
+                page.style.marginRight = '';
+            }
+        });
+        observer.observe(drawer, {attributes: true, attributeFilter: ['class']});
+        observer.observe(document.body, {attributes: true, attributeFilter: ['class']});
     };
 
     return {init};
