@@ -29,7 +29,11 @@ define([], function() {
                 if (rafId === null) {
                     rafId = requestAnimationFrame(() => {
                         drawer.style.width = `${pendingWidth}px`;
-                        page.style.marginRight = `${pendingWidth}px`;
+                        if (window.innerWidth > 1200) {
+                            page.style.marginRight = `${pendingWidth}px`;
+                        } else {
+                            page.style.marginRight = '';
+                        }
                         rafId = null;
                     });
                 }

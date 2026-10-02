@@ -1,7 +1,7 @@
 .block_openai_chat_scieneers [id^="openai_chat_scieneers_log"] {
     display: flex;
     flex-direction: column;
-    max-height: 20rem;
+    max-height: calc(50vh - 5rem);
     overflow-y: scroll;
     margin-bottom: 0.5rem;
 }
@@ -274,7 +274,13 @@
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-label {
     font-size: 0.9rem;
-    margin: 0 0.5rem 0 -0.5rem;
+    margin-left: -0.5rem;
+}
+
+.block_openai_chat_scieneers .scieneers-socratic-toggle-button {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 /* resizing */
