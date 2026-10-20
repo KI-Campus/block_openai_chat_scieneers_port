@@ -83,6 +83,16 @@ class block_openai_chat_scieneers extends block_base {
             <a href="https://ki-campus.org/kontakt" target="_blank">Kontaktformular</a></li>
         </ul>';
 
+        $this->content->text .= '
+            <button type="button"
+                    class="scieneers-fullscreen-toggle"
+                    id="scieneers-fullscreen-' . $this->instance->id . '"
+                    title="Vollbild umschalten"
+                    aria-label="Vollbild umschalten">
+                <i class="fa fa-expand" aria-hidden="true"></i>
+            </button>
+        ';
+
         $this->content->text .= '<div class="greeting-wrapper">
             <div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">' . $greeting . '</div>
         </div>';

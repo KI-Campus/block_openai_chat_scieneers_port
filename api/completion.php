@@ -42,6 +42,7 @@ $history = clean_param_array($body['history'], PARAM_NOTAGS, true);
 $localsourceoftruth = clean_param($body['sourceOfTruth'], PARAM_NOTAGS);
 $infosource = clean_param($body['infoSource'], PARAM_NOTAGS);
 $kiCourseID = intval(clean_param($body['courseID'], PARAM_NOTAGS));
+$startSocraticV2 = !empty($body['startSocraticV2']) ? true : false;
 
 if (!$message) {
     http_response_code(400);
@@ -49,7 +50,7 @@ if (!$message) {
     die();
 }
 
-$completion = new \block_openai_chat_scieneers\completion($message, $history, $localsourceoftruth, $infosource, $kiCourseID);
+$completion = new \block_openai_chat_scieneers\completion($message, $history, $localsourceoftruth, $infosource, $kiCourseID, $startSocraticV2);
 $response = $completion->create_completion();
 
 echo $response;

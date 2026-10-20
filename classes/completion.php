@@ -41,6 +41,7 @@ class completion {
     protected $history;
 	
 	protected $kiCourseID;
+	protected $startSocraticV2;
 
     /**
      * Initialize all the class properties that we'll need regardless of model
@@ -48,7 +49,7 @@ class completion {
      * @param array history: An array of objects containing the history of the conversation
      * @param string localsourceoftruth: The instance-level source of truth we got from the API call
      */
-    public function __construct($message, $history, $localsourceoftruth, $infosource, $courseID) {
+    public function __construct($message, $history, $localsourceoftruth, $infosource, $courseID, $startSocraticV2 = false) {
         $this->prompt = $this->get_setting('prompt', get_string('defaultprompt', 'block_openai_chat_scieneers'));
         $this->assistantname = $this->get_setting('assistantname', get_string('defaultassistantname', 'block_openai_chat_scieneers'));
         $this->username = $this->get_setting('username', get_string('defaultusername', 'block_openai_chat_scieneers'));
@@ -60,6 +61,7 @@ class completion {
         $this->infosource = $infosource;
 		
 		$this->kiCourseID = $courseID;
+		$this->startSocraticV2 = $startSocraticV2;
     }
 
     /**
@@ -122,32 +124,24 @@ class completion {
 
 	private function buildCurlBody() {
 		//https://kic-restapi-dev.azurewebsites.net/docs#/default/chat_api_chat_post
-		$body = new \stdClass();
+		global $SESSION;
+        $body = new \stdClass();
 		
-		$body->messages = [];
-		$body->model = "Llama3"; //"Qwen2";
+		$body->user_query = new \stdClass();
+        $body->user_query->role = "user";
+        $body->user_query->content = $this->message;
+
+        $body->thread_id = $SESSION->block_openai_chat_scieneers_threadid ?? null;
+
 		
 		// course id #1 is used for no course. all valid and existing courses should have an id > 1.
 		if($this->kiCourseID > 1) {
 			$body->course_id = $this->kiCourseID;
 		}
 		
-		
-		foreach($this->history as $h) {
-			$newHistoryItem = new \stdClass();
-			
-			$newHistoryItem->content = $h["message"];
-			$newHistoryItem->role = strtolower($h["user"]);
-			
-			$body->messages[] = $newHistoryItem;
+		if($this->startSocraticV2) {
+			$body->start_socratic_v2 = true;
 		}
-		
-		$newestHistoryItem = new \stdClass();
-		
-		$newestHistoryItem->content = $this->message;
-		$newestHistoryItem->role = "user";
-		
-		$body->messages[] = $newestHistoryItem;
 		
 		return $body;
 	}
@@ -198,33 +192,13 @@ class completion {
 
         $obj = json_decode($result);
         
-        if ($curlinfo['http_code'] == 422) {
-            if(is_siteadmin($USER)){
-                $start_pos = strpos($obj->detail, '[');
-                $end_pos = strpos($obj->detail, ']');
-                $available_sources = substr($obj->detail, $start_pos, $end_pos - $start_pos + 1);
-                $err_array = array('answer' => get_string('error_unknown_info_source_admin', 'block_openai_chat_scieneers', $available_sources));
-            } else {
-                $err_array = array('answer' => get_string('error_unknown_info_source', 'block_openai_chat_scieneers'));
-            }
-            return json_encode($err_array);
+        if ($curlinfo['http_code'] != 200) {
+            http_response_code($curlinfo['http_code'] ?: 502);
+            return $result ?: json_encode(['error' => 'API request failed']);
         }
-        
-        if ($obj && property_exists($obj, "chat_id")) {
-			$SESSION->block_openai_chat_scieneers_chatid = $obj->chat_id;
-        } else {
-            $context = \context_course::instance($COURSE->id);
-            $event = response_parsing_error::create([
-                'context' => $context,
-                'other' => ['response' => $result],
-            ]);
-            $event->trigger();
 
-            // Try using regex.
-            $ret = preg_match('/(?<=chat_id":")(.*?)(",)/', $result, $matches);
-            if ($ret) {
-                $SESSION->block_openai_chat_scieneers_chatid = $matches[1];
-            }
+        if ($obj && property_exists($obj, 'thread_id')) {
+            $SESSION->block_openai_chat_scieneers_threadid = $obj->thread_id;
         }
 
         return $result;

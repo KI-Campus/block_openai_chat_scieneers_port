@@ -273,8 +273,7 @@
 }
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-label {
-    font-size: 0.9rem;
-    margin-left: -0.5rem;
+    margin: 0 0.5rem 0 -0.5rem;
 }
 
 .block_openai_chat_scieneers .scieneers-socratic-toggle-button {
@@ -309,4 +308,74 @@
     font-size: 30px;
     font-weight: bold;
     margin-right: 5px;
+}
+
+/* Vollbild-Button */
+.block_openai_chat_scieneers .scieneers-fullscreen-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 2;
+    border: none;
+    background: transparent;
+    color: #3A2A78;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Chat über der gesamten Moodle-Seite */
+.block_openai_chat_scieneers.scieneers-fullscreen {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100dvh !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 1rem;
+    z-index: 2000;
+    background: white;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Blockinhalt */
+.block_openai_chat_scieneers.scieneers-fullscreen .card {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.block_openai_chat_scieneers.scieneers-fullscreen .card-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.block_openai_chat_scieneers.scieneers-fullscreen .card-text,
+.block_openai_chat_scieneers.scieneers-fullscreen .content {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Chatverlauf */
+.block_openai_chat_scieneers.scieneers-fullscreen [id^="openai_chat_scieneers_log"] {
+    flex: 1;
+    min-height: 0;
+    max-height: none;
+    overflow-y: auto;
+}
+
+/* Resize-Griff ausblenden */
+body:has(.scieneers-fullscreen) .block-drawer-resize {
+    display: none;
+}
+
+/* Schwebenden Chat-Button ausblenden */
+body:has(.scieneers-fullscreen) .scieneers-chat-bubble {
+    display: none !important;
 }

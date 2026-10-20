@@ -41,7 +41,9 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
     document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
         if (e.which === 13 && e.target.value !== "") {
             addToChatLog('user', e.target.value, id)
-            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID)
+            const socraticToggle = document.querySelector('#scieneers-socratic-toggle-'+id)
+            const startSocratic = socraticToggle ? socraticToggle.checked : false
+            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, startSocratic)
             e.target.value = ''
         }
     })
@@ -55,6 +57,43 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
             createCompletion(input.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID)
             input.value = ''
         })
+    }
+
+    //when turned off, send exit message; when on, flag next message
+    const socraticToggle = document.querySelector('#scieneers-socratic-toggle-'+id)
+    if (socraticToggle) {
+        socraticToggle.addEventListener('change', () => {
+            if (!socraticToggle.checked) {
+                addToChatLog('user', 'beende den lernmodus', id)
+                createCompletion('beende den lernmodus', sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, false)
+            }
+        })
+    }
+
+    const block = document.querySelector('#inst' + id);
+    const fullscreenBtn = document.querySelector('#scieneers-fullscreen-' + id);
+
+    if (block && fullscreenBtn) {
+        const placeholder = document.createComment('chat-position');
+
+        fullscreenBtn.addEventListener('click', () => {
+            const active = block.classList.contains('scieneers-fullscreen');
+
+            if (active) {
+                placeholder.replaceWith(block);
+                block.classList.remove('scieneers-fullscreen');
+            } else {
+                block.before(placeholder);
+                document.body.appendChild(block);
+                block.classList.add('scieneers-fullscreen');
+            }
+
+            const icon = fullscreenBtn.querySelector('i');
+            icon.className = active ? 'fa fa-expand' : 'fa fa-compress';
+
+            fullscreenBtn.title = active ? 'Vergrößern' : 'Verkleinern';
+            fullscreenBtn.setAttribute('aria-label', fullscreenBtn.title);
+        });
     }
 
     require(['core/str'], function(str) {
@@ -90,7 +129,7 @@ const addToChatLog = (type, message, id) => {
     messageContainer.scrollTop = messageContainer.scrollHeight
 }
 
-const createCompletion = (message, sourceOfTruth, infoSource, id, courseID) => {
+const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, startSocraticV2 = false) => {
     /**
      * Makes an API request to get a completion from GPT-3, and adds it to the chat log
      * @param {string} message The text to get a completion for
@@ -109,7 +148,8 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID) => {
             history: history,
             sourceOfTruth: sourceOfTruth,
             infoSource: infoSource,
-			courseID: courseID
+			courseID: courseID,
+            startSocraticV2: startSocraticV2
         })
     })
     .then(response => {
