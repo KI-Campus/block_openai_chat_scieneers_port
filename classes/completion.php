@@ -131,13 +131,14 @@ class completion {
         $body->user_query->role = "user";
         $body->user_query->content = $this->message;
 
-        $body->thread_id = $SESSION->block_openai_chat_scieneers_threadid ?? null;
+        $courseid = $this->kiCourseID;
 
-		
+        $body->thread_id = $SESSION->block_openai_chat_scieneers_threadids[$courseid] ?? null;
+
 		// course id #1 is used for no course. all valid and existing courses should have an id > 1.
-		if($this->kiCourseID > 1) {
-			$body->course_id = $this->kiCourseID;
-		}
+		if ($courseid > 1) {
+            $body->course_id = $courseid;
+        }
 		
 		if($this->startSocraticV2) {
 			$body->start_socratic_v2 = true;
@@ -198,7 +199,11 @@ class completion {
         }
 
         if ($obj && property_exists($obj, 'thread_id')) {
-            $SESSION->block_openai_chat_scieneers_threadid = $obj->thread_id;
+            if (!isset($SESSION->block_openai_chat_scieneers_threadids)) {
+                $SESSION->block_openai_chat_scieneers_threadids = [];
+            }
+
+            $SESSION->block_openai_chat_scieneers_threadids[$this->kiCourseID] = $obj->thread_id;
         }
 
         return $result;

@@ -2,6 +2,7 @@ var questionString = 'Ask a question...'
 var errorString = 'An error occurred! Please try again later.'
 
 const init = (Y, sourceOfTruth, infoSource, id) => {
+    loadChatHistory(id, kiCampusChatBotCourseID)
     // Floating chat bubble (bottom right) that opens the block drawer.
     const title = document.querySelector('#inst'+id+' .card-title, #inst'+id+' h5')?.textContent?.trim() || 'Chat';
     if (!document.querySelector('#scieneers-chat-bubble-'+id)) {
@@ -41,9 +42,7 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
     document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
         if (e.which === 13 && e.target.value !== "") {
             addToChatLog('user', e.target.value, id)
-            const socraticToggle = document.querySelector('#scieneers-socratic-toggle-'+id)
-            const startSocratic = socraticToggle ? socraticToggle.checked : false
-            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, startSocratic)
+            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, false)
             e.target.value = ''
         }
     })
@@ -59,13 +58,39 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
         })
     }
 
-    //when turned off, send exit message; when on, flag next message
-    const socraticToggle = document.querySelector('#scieneers-socratic-toggle-'+id)
+    // Lernmodus-Zustand im Frontend speichern.
+    const socraticToggle = document.querySelector('#scieneers-socratic-toggle-' + id)
+    const socraticStorageKey = 'scieneers_socratic_active'
+
     if (socraticToggle) {
+        // Zustand nach Reload wiederherstellen.
+        socraticToggle.checked = sessionStorage.getItem(socraticStorageKey) === 'true'
+
         socraticToggle.addEventListener('change', () => {
-            if (!socraticToggle.checked) {
-                addToChatLog('user', 'beende den lernmodus', id)
-                createCompletion('beende den lernmodus', sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, false)
+            if (socraticToggle.checked) {
+                sessionStorage.setItem(socraticStorageKey, 'true')
+
+                addToChatLog('user', 'Starte den Lernmodus', id)
+                createCompletion(
+                    'Starte den Lernmodus',
+                    sourceOfTruth,
+                    infoSource,
+                    id,
+                    kiCampusChatBotCourseID,
+                    true
+                )
+            } else {
+                sessionStorage.removeItem(socraticStorageKey)
+
+                addToChatLog('user', 'Beende den Lernmodus', id)
+                createCompletion(
+                    'Beende den Lernmodus',
+                    sourceOfTruth,
+                    infoSource,
+                    id,
+                    kiCampusChatBotCourseID,
+                    false
+                )
             }
         })
     }
@@ -129,7 +154,7 @@ const addToChatLog = (type, message, id) => {
     messageContainer.scrollTop = messageContainer.scrollHeight
 }
 
-const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, startSocraticV2 = false) => {
+const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, startSocraticV2) => {
     /**
      * Makes an API request to get a completion from GPT-3, and adds it to the chat log
      * @param {string} message The text to get a completion for
@@ -141,16 +166,20 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, star
     document.querySelector('#openai_input-'+id).blur()
     addToChatLog('bot loading', '...', id);
 
+    const requestBody = {
+        message: message,
+        history: history,
+        sourceOfTruth: sourceOfTruth,
+        infoSource: infoSource,
+        courseID: courseID
+    }
+    if (startSocraticV2) {
+        requestBody.startSocraticV2 = true
+    }
+
     fetch(`${M.cfg.wwwroot}/blocks/openai_chat_scieneers/api/completion.php`, {
         method: 'POST',
-        body: JSON.stringify({
-            message: message,
-            history: history,
-            sourceOfTruth: sourceOfTruth,
-            infoSource: infoSource,
-			courseID: courseID,
-            startSocraticV2: startSocraticV2
-        })
+        body: JSON.stringify(requestBody)
     })
     .then(response => {
         let messageContainer = document.querySelector('#openai_chat_scieneers_log-'+id)
@@ -216,4 +245,39 @@ const buildTranscript = () => {
     })
 
     return transcript
+}
+
+const loadChatHistory = (id, courseID) => {
+    fetch(
+        `${M.cfg.wwwroot}/blocks/openai_chat_scieneers/api/history.php?courseid=${courseID}`
+    )
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Could not load chat history')
+        }
+
+        return response.json()
+    })
+    .then(data => {
+        if (!Array.isArray(data.messages)) {
+            return
+        }
+
+        const messageContainer =
+            document.querySelector('#openai_chat_scieneers_log-' + id)
+
+        if (!messageContainer) {
+            return
+        }
+
+        messageContainer.innerHTML = ''
+
+        data.messages.forEach(message => {
+            const type = message.role === 'user' ? 'user' : 'bot'
+            addToChatLog(type, message.content, id)
+        })
+    })
+    .catch(error => {
+        console.error('Chat history could not be loaded:', error)
+    })
 }
