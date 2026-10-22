@@ -262,10 +262,6 @@ const updateChatResponse = (element, message) => {
 };
 
 const readChatStream = async (response, element) => {
-    if (!response.body) {
-        throw new Error('Streaming wird vom Browser nicht unterstützt');
-    }
-
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
 
@@ -280,44 +276,37 @@ const readChatStream = async (response, element) => {
 
         const event = JSON.parse(line);
 
-        switch (event.type) {
-            case 'meta':
-                // Die thread_id wird bereits serverseitig gespeichert.
-                break;
-
-            case 'token':
-                message += event.token || '';
-                updateChatResponse(element, message);
-                break;
-
-            case 'final':
-                // Verbindliche Antwort ersetzt die gestreamten Tokens.
-                message = event.message || '';
-                updateChatResponse(element, message);
-                finished = true;
-                break;
-
-            case 'error':
-                throw new Error(event.message || 'API-Fehler');
+        if (event.type === 'token') {
+            message += event.token || '';
+            updateChatResponse(element, message);
+        } else if (event.type === 'final') {
+            message = event.message || '';
+            updateChatResponse(element, message);
+            finished = true;
+        } else if (event.type === 'error') {
+            throw new Error(event.message || 'API-Fehler');
         }
+        // 'meta' und unbekannte Typen werden ignoriert.
     };
 
-    while (true) {
-        const {value, done} = await reader.read();
+    let done = false;
 
-        if (done) {
-            break;
-        }
+    while (!done) {
+        const chunk = await reader.read();
+        done = chunk.done;
 
-        buffer += decoder.decode(value, {stream: true});
+        if (!done) {
+            buffer += decoder.decode(chunk.value, {stream: true});
 
-        let newline;
+            let newline = buffer.indexOf('\n');
 
-        while ((newline = buffer.indexOf('\n')) !== -1) {
-            const line = buffer.slice(0, newline);
-            buffer = buffer.slice(newline + 1);
+            while (newline !== -1) {
+                const line = buffer.slice(0, newline);
+                buffer = buffer.slice(newline + 1);
 
-            processLine(line);
+                processLine(line);
+                newline = buffer.indexOf('\n');
+            }
         }
     }
 

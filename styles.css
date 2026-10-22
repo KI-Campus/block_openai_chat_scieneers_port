@@ -374,18 +374,3 @@ body:has(.scieneers-fullscreen) .block-drawer-resize {
 body:has(.scieneers-fullscreen) .scieneers-chat-bubble {
     display: none !important;
 }
-
-/* Streaming */
-.block_openai_chat_scieneers .openai_message.bot {
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
-}
-
-.block_openai_chat_scieneers .openai_message.bot a {
-    color: #3A2A78;
-    text-decoration: underline;
-}
-
-.block_openai_chat_scieneers .openai_message.bot a:hover {
-    text-decoration: none;
-}
