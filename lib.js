@@ -139,11 +139,12 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
     });
 }
 
-const addToChatLog = (type, message, id) => {
+const addToChatLog = (type, message, id, skipPersist) => {
     /**
      * Add a message to the chat UI
      * @param {string} type Which side of the UI the message should be on. Can be "user" or "bot"
      * @param {string} message The text of the message to add
+     * @param {boolean} skipPersist If true, do not write to sessionStorage (used when rendering from storage)
      */
     let messageContainer = document.querySelector('#openai_chat_scieneers_log-'+id)
     messageContainer.insertAdjacentHTML('beforeend', `
@@ -152,6 +153,39 @@ const addToChatLog = (type, message, id) => {
         </div>
     `)
     messageContainer.scrollTop = messageContainer.scrollHeight
+
+    if (!skipPersist) {
+        persistChatMessage(type, message)
+    }
+}
+
+const chatStorageKey = () => 'kic_chat_log_course' + kiCampusChatBotCourseID
+
+const normalizeChatMessage = (role, content) =>
+    JSON.stringify([role, (content || '').replace(/\s+/g, ' ').trim()])
+
+const loadChatLogFromStorage = () => {
+    try {
+        const raw = sessionStorage.getItem(chatStorageKey())
+        if (!raw) {
+            return []
+        }
+        const parsed = JSON.parse(raw)
+        return Array.isArray(parsed) ? parsed : []
+    } catch (e) {
+        return []
+    }
+}
+
+const persistChatMessage = (type, message) => {
+    try {
+        const role = type === 'user' ? 'user' : 'assistant'
+        const log = loadChatLogFromStorage()
+        log.push({role: role, content: message})
+        sessionStorage.setItem(chatStorageKey(), JSON.stringify(log))
+    } catch (e) {
+        // sessionStorage voll oder nicht verfügbar – Chat bleibt trotzdem nutzbar.
+    }
 }
 
 const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, startSocraticV2) => {
@@ -164,7 +198,7 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, star
     document.querySelector('#openai_input-'+id).classList.remove('error')
     document.querySelector('#openai_input-'+id).placeholder = questionString
     document.querySelector('#openai_input-'+id).blur()
-    addToChatLog('bot loading', '...', id);
+    addToChatLog('bot loading', '...', id, true);
 
     const requestBody = {
         message: message,
@@ -249,6 +283,15 @@ const buildTranscript = () => {
 }
 
 const loadChatHistory = (id, courseID) => {
+    const storedLog = loadChatLogFromStorage()
+    const renderedKeys = new Set()
+
+    storedLog.forEach(message => {
+        const type = message.role === 'user' ? 'user' : 'bot'
+        addToChatLog(type, message.content, id, true)
+        renderedKeys.add(normalizeChatMessage(message.role, message.content))
+    })
+
     fetch(
         `${M.cfg.wwwroot}/blocks/openai_chat_scieneers/api/history.php?courseid=${courseID}`
     )
@@ -271,9 +314,13 @@ const loadChatHistory = (id, courseID) => {
             return
         }
 
-        messageContainer.innerHTML = ''
-
         data.messages.forEach(message => {
+            const key = normalizeChatMessage(message.role, message.content)
+            if (renderedKeys.has(key)) {
+                return
+            }
+            renderedKeys.add(key)
+
             const type = message.role === 'user' ? 'user' : 'bot'
             addToChatLog(type, message.content, id)
         })
