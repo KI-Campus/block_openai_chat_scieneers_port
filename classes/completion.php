@@ -230,7 +230,6 @@ class completion {
 
         $payload = json_encode($this->buildCurlBody());
 
-        // PHP-Ausgabepuffer deaktivieren, damit Tokens sofort ankommen.
         while (ob_get_level() > 0) {
             ob_end_flush();
         }
@@ -257,7 +256,6 @@ class completion {
                 'Api-Key: ' . $apikey,
             ],
 
-            // HTTP-Fehlerstatus an das Frontend weiterreichen.
             CURLOPT_HEADERFUNCTION => function($curl, $header) use (&$status) {
                 if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $matches)) {
                     $status = (int) $matches[1];
@@ -274,7 +272,6 @@ class completion {
                 return strlen($header);
             },
 
-            // Eingehende Daten direkt zum Browser weiterreichen.
             CURLOPT_WRITEFUNCTION => function($curl, $chunk)
                     use (&$buffer, &$status, $courseid, &$SESSION) {
 
@@ -297,7 +294,6 @@ class completion {
 
                     $event = json_decode($line, true);
 
-                    // Thread-ID sofort aus dem meta-Event speichern.
                     if (is_array($event) &&
                             ($event['type'] ?? '') === 'meta' &&
                             !empty($event['thread_id'])) {
@@ -323,7 +319,6 @@ class completion {
         curl_close($curl);
 
         if ($status === 200) {
-            // Letzte Zeile verarbeiten, falls kein abschließendes \n kam.
             if (trim($buffer) !== '') {
                 $event = json_decode($buffer, true);
 

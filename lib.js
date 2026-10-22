@@ -286,7 +286,6 @@ const readChatStream = async (response, element) => {
         } else if (event.type === 'error') {
             throw new Error(event.message || 'API-Fehler');
         }
-        // 'meta' und unbekannte Typen werden ignoriert.
     };
 
     let done = false;
@@ -337,7 +336,6 @@ const createCompletion = async (
         '#openai_chat_scieneers_log-' + id
     );
 
-    // Verhindert parallele Requests innerhalb desselben Chats.
     if (input.classList.contains('disabled')) {
         return;
     }
@@ -412,7 +410,6 @@ const createCompletion = async (
             updateChatResponse(botMessage, answer);
         }
 
-        // Antwort erst nach erfolgreichem Abschluss speichern.
         persistChatMessage('bot', answer);
 
     } catch (error) {
@@ -421,7 +418,6 @@ const createCompletion = async (
         input.classList.add('error');
         input.placeholder = errorString;
 
-        // Eventuelle Teilantwort nicht als vollständige Antwort behalten.
         updateChatResponse(
             botMessage,
             'Die Antwort konnte nicht vollständig geladen werden. ' +
@@ -436,7 +432,6 @@ const createCompletion = async (
         }
     }
 
-    // Bestehendes Matomo-Tracking beibehalten.
     try {
         let messageCount = 1;
 
