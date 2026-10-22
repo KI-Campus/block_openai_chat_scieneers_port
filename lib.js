@@ -171,7 +171,8 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, star
         history: history,
         sourceOfTruth: sourceOfTruth,
         infoSource: infoSource,
-        courseID: courseID
+        courseID: courseID,
+        moduleIDs: kiCampusChatBotModuleIDs
     }
     if (startSocraticV2) {
         requestBody.startSocraticV2 = true

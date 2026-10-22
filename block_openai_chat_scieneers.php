@@ -42,7 +42,7 @@ class block_openai_chat_scieneers extends block_base {
     }
 
     public function get_content() {
-        global $COURSE;
+        global $COURSE, $PAGE;
         if ($this->content !== null) {
             return $this->content;
         }
@@ -97,11 +97,43 @@ class block_openai_chat_scieneers extends block_base {
             <div id="chatbotgreeting" style="margin-top: 5px; color: white; padding: 10px; background: #3a2a78; border-radius: 8px;">' . $greeting . '</div>
         </div>';
 
+        if ($COURSE->id > 1 && $PAGE->context->contextlevel === CONTEXT_MODULE) {
+            $currentcmid = (int) $PAGE->context->instanceid;
+
+            $modinfo = get_fast_modinfo($COURSE);
+            $foundcurrent = false;
+
+            foreach ($modinfo->get_sections() as $sectioncmids) {
+                if (!$foundcurrent) {
+                    foreach ($sectioncmids as $cmid) {
+                        if (!$foundcurrent) {
+                            $cmid = (int) $cmid;
+                            $cm = $modinfo->get_cm($cmid);
+
+                            if (!$cm->deletioninprogress) {
+                                $moduleids[] = $cmid;
+
+                                if ($cmid === $currentcmid) {
+                                    $foundcurrent = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!$foundcurrent) {
+                $moduleids = [];
+            }
+        }
+
         $this->content->text .= '
             <script>
                 var assistantName = "' . $assistantname . '";
                 var userName = "' . $username . '";
 				var kiCampusChatBotCourseID = "' . $COURSE->id . '";
+                var kiCampusChatBotModuleIDs = ' . json_encode($moduleids) . ';
+
             </script>
 
             <style>

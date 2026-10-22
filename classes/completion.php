@@ -41,6 +41,7 @@ class completion {
     protected $history;
 	
 	protected $kiCourseID;
+    protected $kiModuleIDs;
 	protected $startSocraticV2;
 
     /**
@@ -49,7 +50,7 @@ class completion {
      * @param array history: An array of objects containing the history of the conversation
      * @param string localsourceoftruth: The instance-level source of truth we got from the API call
      */
-    public function __construct($message, $history, $localsourceoftruth, $infosource, $courseID, $startSocraticV2 = false) {
+    public function __construct($message, $history, $localsourceoftruth, $infosource, $courseID, $moduleIDs = [], $startSocraticV2 = false) {
         $this->prompt = $this->get_setting('prompt', get_string('defaultprompt', 'block_openai_chat_scieneers'));
         $this->assistantname = $this->get_setting('assistantname', get_string('defaultassistantname', 'block_openai_chat_scieneers'));
         $this->username = $this->get_setting('username', get_string('defaultusername', 'block_openai_chat_scieneers'));
@@ -61,6 +62,7 @@ class completion {
         $this->infosource = $infosource;
 		
 		$this->kiCourseID = $courseID;
+        $this->kiModuleIDs = $moduleIDs;
 		$this->startSocraticV2 = $startSocraticV2;
     }
 
@@ -138,6 +140,10 @@ class completion {
 		// course id #1 is used for no course. all valid and existing courses should have an id > 1.
 		if ($courseid > 1) {
             $body->course_id = $courseid;
+
+            if (!empty($this->kiModuleIDs)) {
+                $body->module_id = $this->kiModuleIDs;
+            }
         }
 		
 		if($this->startSocraticV2) {
