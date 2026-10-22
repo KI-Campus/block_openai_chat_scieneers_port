@@ -47,15 +47,19 @@ class block_openai_chat_scieneers extends block_base {
             return $this->content;
         }
 
-        $sourceoftruth = !empty($this->config) && $this->config->sourceoftruth ? $this->config->sourceoftruth : '';
-        $infosource    = !empty($this->config) && $this->config->infosource    ? $this->config->infosource    : '';
+        // $sourceoftruth = !empty($this->config) && $this->config->sourceoftruth ? $this->config->sourceoftruth : '';
+        // $infosource    = !empty($this->config) && $this->config->infosource    ? $this->config->infosource    : '';
+
+		$sourceoftruth = !empty($this->config->sourceoftruth) ? $this->config->sourceoftruth : '';
+		$infosource    = !empty($this->config->infosource)    ? $this->config->infosource    : '';
 
         $this->page->requires->js('/blocks/openai_chat_scieneers/lib.js');
         $this->page->requires->js_init_call('init', [$sourceoftruth, $infosource, $this->instance->id]);
 
         // Determine if name labels should be shown.
         $showlabelscss = '';
-        if (!empty($this->config) && !$this->config->showlabels) {
+        // if (!empty($this->config) && !$this->config->showlabels) {
+		if (!empty($this->config) && empty($this->config->showlabels)) {
             $showlabelscss = '
                 .openai_message:before {
                     display: none;
