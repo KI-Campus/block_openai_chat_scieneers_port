@@ -56,7 +56,26 @@ if (!$message) {
     die();
 }
 
-$completion = new \block_openai_chat_scieneers\completion($message, $history, $localsourceoftruth, $infosource, $kiCourseID, $kiModuleIDs, $startSocraticV2);
-$response = $completion->create_completion();
+$completion = new \block_openai_chat_scieneers\completion(
+    $message,
+    $history,
+    $localsourceoftruth,
+    $infosource,
+    $kiCourseID,
+    $kiModuleIDs,
+    $startSocraticV2
+);
 
-echo $response;
+$apiurl = rtrim(
+    trim(get_config('block_openai_chat_scieneers', 'apiurl')),
+    '/'
+);
+
+if (preg_match('#/api/chat/stream$#', $apiurl)) {
+    $completion->stream_completion();
+} else {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $response = $completion->create_completion();
+    echo $response;
+}

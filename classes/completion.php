@@ -214,4 +214,150 @@ class completion {
 
         return $result;
     }
+
+    public function stream_completion() {
+        global $SESSION;
+
+        $apiurl = trim(get_config('block_openai_chat_scieneers', 'apiurl'));
+        $apikey = get_config('block_openai_chat_scieneers', 'apikey');
+
+        if (empty($apikey) || empty($apiurl)) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+            echo json_encode(['error' => 'API configuration missing']);
+            return;
+        }
+
+        $payload = json_encode($this->buildCurlBody());
+
+        // PHP-Ausgabepuffer deaktivieren, damit Tokens sofort ankommen.
+        while (ob_get_level() > 0) {
+            ob_end_flush();
+        }
+
+        ini_set('zlib.output_compression', '0');
+        header('Cache-Control: no-cache, no-transform');
+        header('X-Accel-Buffering: no');
+
+        $buffer = '';
+        $status = 0;
+        $courseid = $this->kiCourseID;
+
+        $curl = curl_init($apiurl);
+
+        curl_setopt_array($curl, [
+            CURLOPT_POST => true,
+            CURLOPT_POSTFIELDS => $payload,
+            CURLOPT_RETURNTRANSFER => false,
+            CURLOPT_TIMEOUT => 230,
+            CURLOPT_CONNECTTIMEOUT => 15,
+            CURLOPT_HTTPHEADER => [
+                'Content-Type: application/json',
+                'Accept: application/x-ndjson',
+                'Api-Key: ' . $apikey,
+            ],
+
+            // HTTP-Fehlerstatus an das Frontend weiterreichen.
+            CURLOPT_HEADERFUNCTION => function($curl, $header) use (&$status) {
+                if (preg_match('/^HTTP\/\S+\s+(\d+)/', $header, $matches)) {
+                    $status = (int) $matches[1];
+                    http_response_code($status);
+
+                    header(
+                        'Content-Type: ' .
+                        ($status === 200
+                            ? 'application/x-ndjson; charset=utf-8'
+                            : 'application/json; charset=utf-8')
+                    );
+                }
+
+                return strlen($header);
+            },
+
+            // Eingehende Daten direkt zum Browser weiterreichen.
+            CURLOPT_WRITEFUNCTION => function($curl, $chunk)
+                    use (&$buffer, &$status, $courseid, &$SESSION) {
+
+                if ($status !== 200) {
+                    echo $chunk;
+                    flush();
+                    return strlen($chunk);
+                }
+
+                $buffer .= $chunk;
+
+                // Eine NDJSON-Zeile kann auf mehrere Chunks verteilt sein.
+                while (($pos = strpos($buffer, "\n")) !== false) {
+                    $line = substr($buffer, 0, $pos);
+                    $buffer = substr($buffer, $pos + 1);
+
+                    if (trim($line) === '') {
+                        continue;
+                    }
+
+                    $event = json_decode($line, true);
+
+                    // Thread-ID sofort aus dem meta-Event speichern.
+                    if (is_array($event) &&
+                            ($event['type'] ?? '') === 'meta' &&
+                            !empty($event['thread_id'])) {
+
+                        if (!isset($SESSION->block_openai_chat_scieneers_threadids)) {
+                            $SESSION->block_openai_chat_scieneers_threadids = [];
+                        }
+
+                        $SESSION->block_openai_chat_scieneers_threadids[$courseid] =
+                            $event['thread_id'];
+                    }
+
+                    echo $line . "\n";
+                    flush();
+                }
+
+                return strlen($chunk);
+            },
+        ]);
+
+        $success = curl_exec($curl);
+        $error = curl_error($curl);
+        curl_close($curl);
+
+        if ($status === 200) {
+            // Letzte Zeile verarbeiten, falls kein abschließendes \n kam.
+            if (trim($buffer) !== '') {
+                $event = json_decode($buffer, true);
+
+                if (is_array($event)) {
+                    if (($event['type'] ?? '') === 'meta' &&
+                            !empty($event['thread_id'])) {
+
+                        if (!isset($SESSION->block_openai_chat_scieneers_threadids)) {
+                            $SESSION->block_openai_chat_scieneers_threadids = [];
+                        }
+
+                        $SESSION->block_openai_chat_scieneers_threadids[$courseid] =
+                            $event['thread_id'];
+                    }
+
+                    echo $buffer . "\n";
+                }
+            }
+
+            if (!$success) {
+                echo json_encode([
+                    'type' => 'error',
+                    'message' => $error ?: 'Streaming-Verbindung unterbrochen',
+                ]) . "\n";
+            }
+
+            flush();
+        } else if (!$success && $status === 0) {
+            http_response_code(502);
+            header('Content-Type: application/json; charset=utf-8');
+
+            echo json_encode([
+                'error' => $error ?: 'API request failed',
+            ]);
+        }
+    }
 }

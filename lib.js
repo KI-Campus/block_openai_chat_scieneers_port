@@ -39,19 +39,36 @@ const init = (Y, sourceOfTruth, infoSource, id) => {
         syncBubble()
     }
 
-    document.querySelector('#openai_input-'+id).addEventListener('keyup', e => {
-        if (e.which === 13 && e.target.value !== "") {
-            addToChatLog('user', e.target.value, id)
-            createCompletion(e.target.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID, false)
-            e.target.value = ''
+    document.querySelector('#openai_input-' + id).addEventListener('keyup', e => {
+    if (e.which === 13 &&
+        e.target.value.trim() !== '' &&
+        !e.target.classList.contains('disabled')) {
+            addToChatLog('user', e.target.value, id);
+            createCompletion(
+                e.target.value,
+                sourceOfTruth,
+                infoSource,
+                id,
+                kiCampusChatBotCourseID,
+                false
+            );
+            e.target.value = '';
         }
-    })
+    });
 
     const sendBtn = document.querySelector('#openai_send-'+id)
     if (sendBtn) {
         sendBtn.addEventListener('click', () => {
             const input = document.querySelector('#openai_input-'+id)
-            if (!input || input.value.trim() === '') return
+
+            if (
+                !input ||
+                input.value.trim() === '' ||
+                input.classList.contains('disabled')
+            ) {
+                return
+            }
+
             addToChatLog('user', input.value, id)
             createCompletion(input.value, sourceOfTruth, infoSource, id, kiCampusChatBotCourseID)
             input.value = ''
@@ -188,17 +205,172 @@ const persistChatMessage = (type, message) => {
     }
 }
 
-const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, startSocraticV2) => {
-    /**
-     * Makes an API request to get a completion from GPT-3, and adds it to the chat log
-     * @param {string} message The text to get a completion for
-     */
-    const history = buildTranscript()
-    document.querySelector('#openai_input-'+id).classList.add('disabled')
-    document.querySelector('#openai_input-'+id).classList.remove('error')
-    document.querySelector('#openai_input-'+id).placeholder = questionString
-    document.querySelector('#openai_input-'+id).blur()
-    addToChatLog('bot loading', '...', id, true);
+const renderChatContent = (container, content) => {
+    const parsed = new DOMParser().parseFromString(content, 'text/html');
+    const allowedTags = ['A', 'BR', 'P', 'STRONG', 'EM', 'B', 'I', 'UL', 'OL', 'LI'];
+
+    const createSafeNode = node => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            return document.createTextNode(node.textContent);
+        }
+
+        if (node.nodeType !== Node.ELEMENT_NODE) {
+            return document.createDocumentFragment();
+        }
+
+        const tag = node.tagName;
+        const element = allowedTags.includes(tag)
+            ? document.createElement(tag.toLowerCase())
+            : document.createDocumentFragment();
+
+        if (tag === 'A' && element instanceof HTMLAnchorElement) {
+            const href = node.getAttribute('href');
+
+            try {
+                const url = new URL(href, window.location.href);
+
+                if (['http:', 'https:'].includes(url.protocol)) {
+                    element.href = url.href;
+                    element.target = '_blank';
+                    element.rel = 'noopener noreferrer';
+                }
+            } catch (error) {
+                // Ungültige URL ignorieren.
+            }
+        }
+
+        node.childNodes.forEach(child => {
+            element.appendChild(createSafeNode(child));
+        });
+
+        return element;
+    };
+
+    container.replaceChildren();
+
+    parsed.body.childNodes.forEach(node => {
+        container.appendChild(createSafeNode(node));
+    });
+};
+
+const updateChatResponse = (element, message) => {
+    renderChatContent(element, message);
+    element.classList.remove('loading');
+
+    const messageContainer = element.parentElement;
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+};
+
+const readChatStream = async (response, element) => {
+    if (!response.body) {
+        throw new Error('Streaming wird vom Browser nicht unterstützt');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+
+    let buffer = '';
+    let message = '';
+    let finished = false;
+
+    const processLine = line => {
+        if (!line.trim()) {
+            return;
+        }
+
+        const event = JSON.parse(line);
+
+        switch (event.type) {
+            case 'meta':
+                // Die thread_id wird bereits serverseitig gespeichert.
+                break;
+
+            case 'token':
+                message += event.token || '';
+                updateChatResponse(element, message);
+                break;
+
+            case 'final':
+                // Verbindliche Antwort ersetzt die gestreamten Tokens.
+                message = event.message || '';
+                updateChatResponse(element, message);
+                finished = true;
+                break;
+
+            case 'error':
+                throw new Error(event.message || 'API-Fehler');
+        }
+    };
+
+    while (true) {
+        const {value, done} = await reader.read();
+
+        if (done) {
+            break;
+        }
+
+        buffer += decoder.decode(value, {stream: true});
+
+        let newline;
+
+        while ((newline = buffer.indexOf('\n')) !== -1) {
+            const line = buffer.slice(0, newline);
+            buffer = buffer.slice(newline + 1);
+
+            processLine(line);
+        }
+    }
+
+    buffer += decoder.decode();
+
+    if (buffer.trim()) {
+        processLine(buffer);
+    }
+
+    if (!finished) {
+        throw new Error('Stream wurde ohne finale Antwort beendet');
+    }
+
+    return message;
+};
+
+const createCompletion = async (
+    message,
+    sourceOfTruth,
+    infoSource,
+    id,
+    courseID,
+    startSocraticV2 = false
+) => {
+    const input = document.querySelector('#openai_input-' + id);
+    const sendButton = document.querySelector('#openai_send-' + id);
+    const messageContainer = document.querySelector(
+        '#openai_chat_scieneers_log-' + id
+    );
+
+    // Verhindert parallele Requests innerhalb desselben Chats.
+    if (input.classList.contains('disabled')) {
+        return;
+    }
+
+    const history = buildTranscript();
+
+    input.classList.add('disabled');
+    input.classList.remove('error');
+    input.placeholder = questionString;
+    input.blur();
+
+    if (sendButton) {
+        sendButton.disabled = true;
+    }
+
+    // Eine einzige Chatnachricht erzeugen und laufend aktualisieren.
+    const botMessage = document.createElement('div');
+    botMessage.className = 'openai_message bot loading';
+    botMessage.textContent = '...';
+
+    messageContainer.appendChild(botMessage);
+    messageContainer.scrollTop = messageContainer.scrollHeight;
 
     const requestBody = {
         message: message,
@@ -207,59 +379,102 @@ const createCompletion = (message, sourceOfTruth, infoSource, id, courseID, star
         infoSource: infoSource,
         courseID: courseID,
         moduleIDs: kiCampusChatBotModuleIDs
-    }
+    };
+
     if (startSocraticV2) {
-        requestBody.startSocraticV2 = true
+        requestBody.startSocraticV2 = true;
     }
 
-    fetch(`${M.cfg.wwwroot}/blocks/openai_chat_scieneers/api/completion.php`, {
-        method: 'POST',
-        body: JSON.stringify(requestBody)
-    })
-    .then(response => {
-        let messageContainer = document.querySelector('#openai_chat_scieneers_log-'+id)
-        messageContainer.removeChild(messageContainer.lastElementChild)
-        document.querySelector('#openai_input-'+id).classList.remove('disabled')
+    try {
+        const response = await fetch(
+            `${M.cfg.wwwroot}/blocks/openai_chat_scieneers/api/completion.php`,
+            {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestBody)
+            }
+        );
 
         if (!response.ok) {
-            throw Error(response.statusText)
+            const errorBody = await response.text();
+
+            throw new Error(
+                `HTTP ${response.status}: ${errorBody || response.statusText}`
+            );
+        }
+
+        const contentType = response.headers.get('content-type') || '';
+        let answer;
+
+        if (contentType.includes('application/x-ndjson')) {
+            // Streaming-Endpunkt.
+            answer = await readChatStream(response, botMessage);
         } else {
-            return response.json()
+            // Normaler Endpunkt: vollständige JSON-Antwort.
+            const data = await response.json();
+
+            if (typeof data.message !== 'string') {
+                throw new Error(data.error || 'Ungültige API-Antwort');
+            }
+
+            answer = data.message;
+            updateChatResponse(botMessage, answer);
         }
-    })
-    .then(data => {
-        try {
-            addToChatLog('bot', data.message, id)
-        } catch (error) {
-            addToChatLog('bot', data.error.message, id)
+
+        // Antwort erst nach erfolgreichem Abschluss speichern.
+        persistChatMessage('bot', answer);
+
+    } catch (error) {
+        console.error('Chat completion error:', error);
+
+        input.classList.add('error');
+        input.placeholder = errorString;
+
+        // Eventuelle Teilantwort nicht als vollständige Antwort behalten.
+        updateChatResponse(
+            botMessage,
+            'Die Antwort konnte nicht vollständig geladen werden. ' +
+            'Bitte versuche es erneut.'
+        );
+
+    } finally {
+        input.classList.remove('disabled');
+
+        if (sendButton) {
+            sendButton.disabled = false;
         }
-    })
-    .catch(error => {
-        document.querySelector('#openai_input-'+id).classList.add('error')
-        document.querySelector('#openai_input-'+id).placeholder = errorString
-    })
-	
+    }
+
+    // Bestehendes Matomo-Tracking beibehalten.
     try {
         let messageCount = 1;
 
-        if(Array.isArray(history)) {
+        if (Array.isArray(history)) {
             messageCount = history.length + 1;
         }
 
-        if(typeof _paq !== 'undefined') {
-            _paq.push(['trackEvent', 'ChatBot', 'Message Sent', 'ChatBot Message Sent', messageCount]);
+        if (typeof _paq !== 'undefined') {
+            _paq.push([
+                'trackEvent',
+                'ChatBot',
+                'Message Sent',
+                'ChatBot Message Sent',
+                messageCount
+            ]);
         }
 
-        let greeting = document.getElementById("chatbotgreeting");
+        const greeting = document.getElementById('chatbotgreeting');
 
-        if(greeting !== undefined) {
-            greeting.style.display = "none";
+        if (greeting) {
+            greeting.style.display = 'none';
         }
 
-    } catch(error) {
-        console.log("counter error");
+    } catch (error) {
+        console.error('Chat tracking error:', error);
     }
-}
+};
 
 const buildTranscript = () => {
     /**
