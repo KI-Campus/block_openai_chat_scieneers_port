@@ -63,6 +63,18 @@ define([], function() {
         });
         observer.observe(drawer, {attributes: true, attributeFilter: ['class']});
         observer.observe(document.body, {attributes: true, attributeFilter: ['class']});
+
+        // Open the block drawer by default on page load.
+        const openDrawer = () => {
+            if (document.body.classList.contains('drawer-open-right') && !drawer.classList.contains('hidden')) {
+                return;
+            }
+
+            drawer.classList.remove('hidden');
+            drawer.classList.add('show');
+            document.body.classList.add('drawer-open-right');
+        };
+        openDrawer();
     };
 
     return {init};
