@@ -163,12 +163,19 @@ const addToChatLog = (type, message, id, skipPersist) => {
      * @param {string} message The text of the message to add
      * @param {boolean} skipPersist If true, do not write to sessionStorage (used when rendering from storage)
      */
-    let messageContainer = document.querySelector('#openai_chat_scieneers_log-'+id)
-    messageContainer.insertAdjacentHTML('beforeend', `
-        <div class='openai_message ${type}'>
-            ${message}
-        </div>
-    `)
+    const messageContainer = document.querySelector('#openai_chat_scieneers_log-'+id)
+    const element = document.createElement('div')
+    element.className = `openai_message ${type}`
+    messageContainer.appendChild(element)
+
+    if (type === 'bot') {
+        // Bot answers (also restored ones) take the same path as streamed answers.
+        updateChatResponse(element, message)
+    } else {
+        // User text is never interpreted as HTML.
+        element.textContent = message
+        element.dataset.raw = message
+    }
     messageContainer.scrollTop = messageContainer.scrollHeight
 
     if (!skipPersist) {
@@ -205,8 +212,70 @@ const persistChatMessage = (type, message) => {
     }
 }
 
+const prepareChatText = text => {
+    /**
+     * Convert the Markdown subset the assistant uses into HTML and protect LaTeX formulas.
+     * Formulas are cut out first (a "_" in \theta_t must not become italics) and returned
+     * separately, so they can be put back as plain text after sanitizing.
+     * @param {string} text Raw assistant answer
+     * @return {{html: string, math: string[]}}
+     */
+    const math = [];
+    const marker = index => '' + index + '';
+
+    const withoutMath = String(text).replace(
+        /\$\$([\s\S]+?)\$\$|\\\[([\s\S]+?)\\\]|\\\(([\s\S]+?)\\\)|(?<![\w\\$])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d)/g,
+        (match, display, bracket, paren, dollar) => {
+            // Moodle's MathJax filter understands \( \) and \[ \], but not a single $.
+            if (display !== undefined || bracket !== undefined) {
+                math.push('\\[' + (display !== undefined ? display : bracket) + '\\]');
+            } else {
+                math.push('\\(' + (paren !== undefined ? paren : dollar) + '\\)');
+            }
+            return marker(math.length - 1);
+        }
+    );
+
+    const inline = line => line
+        .replace(/\[([^\[\]]+?)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2">$1</a>')
+        .replace(/\*\*([^*\n]+?)\*\*/g, '<strong>$1</strong>')
+        .replace(/(^|[\s(])\*(?!\s)([^*\n]+?)(?<!\s)\*(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>')
+        .replace(/(^|[\s(])_(?!\s)([^_\n]+?)(?<!\s)_(?=[\s).,;:!?]|$)/g, '$1<em>$2</em>');
+
+    let html = '';
+    let list = null;
+    const closeList = () => {
+        if (list) {
+            html += '</' + list + '>';
+            list = null;
+        }
+    };
+
+    withoutMath.split('\n').forEach(line => {
+        const bullet = line.match(/^\s*[-*]\s+(.*)/);
+        const numbered = line.match(/^\s*\d+[.)]\s+(.*)/);
+
+        if (bullet || numbered) {
+            const tag = bullet ? 'ul' : 'ol';
+            if (list !== tag) {
+                closeList();
+                html += '<' + tag + '>';
+                list = tag;
+            }
+            html += '<li>' + inline((bullet || numbered)[1]) + '</li>';
+        } else {
+            closeList();
+            html += line.trim() === '' ? '<br>' : inline(line) + '<br>';
+        }
+    });
+    closeList();
+
+    return {html: html, math: math};
+};
+
 const renderChatContent = (container, content) => {
-    const parsed = new DOMParser().parseFromString(content, 'text/html');
+    const prepared = prepareChatText(content);
+    const parsed = new DOMParser().parseFromString(prepared.html, 'text/html');
     const allowedTags = ['A', 'BR', 'P', 'STRONG', 'EM', 'B', 'I', 'UL', 'OL', 'LI'];
 
     const createSafeNode = node => {
@@ -246,16 +315,41 @@ const renderChatContent = (container, content) => {
         return element;
     };
 
-    container.replaceChildren();
+    // Moodle's MathJax filter only typesets content inside this class.
+    const wrapper = document.createElement('span');
+    wrapper.className = 'filter_mathjaxloader_equation';
+    container.replaceChildren(wrapper);
 
     parsed.body.childNodes.forEach(node => {
-        container.appendChild(createSafeNode(node));
+        wrapper.appendChild(createSafeNode(node));
+    });
+
+    // Put the formulas back as plain text, they are never parsed as HTML.
+    const walker = document.createTreeWalker(wrapper, NodeFilter.SHOW_TEXT);
+    const textNodes = [];
+    while (walker.nextNode()) {
+        textNodes.push(walker.currentNode);
+    }
+    textNodes.forEach(textNode => {
+        textNode.nodeValue = textNode.nodeValue.replace(
+            /(\d+)/g,
+            (match, index) => prepared.math[Number(index)] ?? match
+        );
     });
 };
 
-const updateChatResponse = (element, message) => {
+const updateChatResponse = (element, message, final = true) => {
+    // Keep the original text, the visible content changes once formulas are typeset.
+    element.dataset.raw = message;
     renderChatContent(element, message);
     element.classList.remove('loading');
+
+    if (final) {
+        // Typeset formulas once per answer, not for every streamed token.
+        require(['core_filters/events'], filterEvents => {
+            filterEvents.notifyFilterContentUpdated([element]);
+        });
+    }
 
     const messageContainer = element.parentElement;
     messageContainer.scrollTop = messageContainer.scrollHeight;
@@ -278,7 +372,7 @@ const readChatStream = async (response, element) => {
 
         if (event.type === 'token') {
             message += event.token || '';
-            updateChatResponse(element, message);
+            updateChatResponse(element, message, false);
         } else if (event.type === 'final') {
             message = event.message || '';
             updateChatResponse(element, message);
@@ -460,6 +554,24 @@ const createCompletion = async (
     }
 };
 
+const transcriptText = message => {
+    /**
+     * Text of a chat message as it is sent to the backend as history.
+     * Formulas and Markdown are rendered in the page, so innerText can no longer be used.
+     * The original text is reduced to what the browser showed before the rendering was
+     * added: HTML tags dropped, whitespace collapsed. The backend therefore receives the
+     * same history text as before.
+     * @param {HTMLElement} message The chat message element
+     * @return {string}
+     */
+    if (message.dataset.raw === undefined) {
+        return message.innerText
+    }
+
+    const text = new DOMParser().parseFromString(message.dataset.raw, 'text/html').body.textContent
+    return text.replace(/\s+/g, ' ').trim()
+}
+
 const buildTranscript = () => {
     /**
      * Using the existing messages in the chat history, create a string that can be used to aid completion
@@ -475,7 +587,7 @@ const buildTranscript = () => {
         if (message.classList.contains('bot')) {
             user = assistantName
         }
-        transcript.push({"user": user, "message": message.innerText})
+        transcript.push({"user": user, "message": transcriptText(message)})
     })
 
     return transcript
